@@ -2,22 +2,24 @@ package main
 
 import "fmt"
 
+// 1st for select loop pattern
 func main() {
-	myChannel := make(chan string)
-	anotherChannel := make(chan string)
+	charChannel := make(chan string, 3)
+	//this is buffered channel async
+	chars := []string{"a", "b", "c"}
 
-	go func() {
-		myChannel <- "data"
-	}()
-
-	go func() {
-		anotherChannel <- "mew"
-	}()
-
-	select {
-	case msgFromMyChannel := <-myChannel:
-		fmt.Println(msgFromMyChannel)
-	case msgFromAnotherChannle := <-anotherChannel:
-		fmt.Println(msgFromAnotherChannle)
+	for _, s := range chars {
+		select {
+		case charChannel <- s:
+		}
 	}
+
+	close(charChannel)
+
+	for result := range charChannel {
+		fmt.Println(result)
+	}
+
+	//if unbuffered channel sync
+
 }
