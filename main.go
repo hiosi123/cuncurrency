@@ -1,25 +1,32 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // 1st for select loop pattern
-func main() {
-	charChannel := make(chan string, 3)
-	//this is buffered channel async
-	chars := []string{"a", "b", "c"}
+// done channel
 
-	for _, s := range chars {
+// what is goroutine leak? unintentionally leaving goroutine.
+func main() {
+	done := make(chan bool)
+
+	go doWork(done)
+
+	time.Sleep(time.Second * 3)
+
+	close(done)
+}
+
+func doWork(done <-chan bool) {
+	//when parent wants to close the child goroutine, it is the main reason to use for select
+	for {
 		select {
-		case charChannel <- s:
+		case <-done:
+			return
+		default:
+			fmt.Println("doing work")
 		}
 	}
-
-	close(charChannel)
-
-	for result := range charChannel {
-		fmt.Println(result)
-	}
-
-	//if unbuffered channel sync
-
 }
