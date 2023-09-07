@@ -1,32 +1,41 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
 
-// 1st for select loop pattern
-// done channel
+func sliceToChannel(nums []int) <-chan int {
+	out := make(chan int)
+	go func() {
+		for _, n := range nums {
+			out <- n
+		}
+		close(out)
+	}()
 
-// what is goroutine leak? unintentionally leaving goroutine.
-func main() {
-	done := make(chan bool)
-
-	go doWork(done)
-
-	time.Sleep(time.Second * 3)
-
-	close(done)
+	return out
 }
 
-func doWork(done <-chan bool) {
-	//when parent wants to close the child goroutine, it is the main reason to use for select
-	for {
-		select {
-		case <-done:
-			return
-		default:
-			fmt.Println("doing work")
+func sq(in <-chan int) <-chan int {
+	out := make(chan int)
+	go func() {
+		for n := range in {
+			out <- n * n
 		}
+		close(out)
+	}()
+	return out
+}
+
+// What is pipeline?
+func main() {
+	//input
+	nums := []int{2, 3, 4, 7, 1}
+	//stage1
+	dataChannel := sliceToChannel(nums)
+	//stage2
+	finalChannel := sq(dataChannel)
+	//stage3
+	for n := range finalChannel {
+		fmt.Println(n)
 	}
+
 }
