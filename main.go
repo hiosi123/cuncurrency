@@ -1,41 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
-func sliceToChannel(nums []int) <-chan int {
-	out := make(chan int)
-	go func() {
-		for _, n := range nums {
-			out <- n
-		}
-		close(out)
-	}()
-
-	return out
-}
-
-func sq(in <-chan int) <-chan int {
-	out := make(chan int)
-	go func() {
-		for n := range in {
-			out <- n * n
-		}
-		close(out)
-	}()
-	return out
-}
-
-// What is pipeline?
 func main() {
-	//input
-	nums := []int{2, 3, 4, 7, 1}
-	//stage1
-	dataChannel := sliceToChannel(nums)
-	//stage2
-	finalChannel := sq(dataChannel)
-	//stage3
-	for n := range finalChannel {
-		fmt.Println(n)
+	start := time.Now()
+	defer func() {
+		fmt.Println(time.Since(start))
+	}()
+
+	call := make(chan bool, 4)
+
+	evilNinjas := []string{"Tommny", "Johny", "Bobby", "Andy"}
+
+	for _, evilNinja := range evilNinjas {
+		go Attack(evilNinja, call)
+	}
+	for i := 0; i < len(evilNinjas); i++ {
+		fmt.Println(<-call)
 	}
 
+}
+
+func Attack(target string, call chan bool) {
+	fmt.Println("Throwing ninja Sword at ", target)
+	time.Sleep(time.Second)
+	call <- true
 }
