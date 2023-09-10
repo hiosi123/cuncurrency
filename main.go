@@ -18,9 +18,8 @@ func main() {
 	for _, evilNinja := range evilNinjas {
 		go Attack(evilNinja, call)
 	}
-	for i := 0; i < len(evilNinjas); i++ {
-		fmt.Println(<-call)
-	}
+
+	fmt.Println(<-call)
 
 }
 
