@@ -2,29 +2,27 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
 func main() {
-	start := time.Now()
-	defer func() {
-		fmt.Println(time.Since(start))
-	}()
 
-	call := make(chan bool, 4)
+	channel := make(chan string)
 
-	evilNinjas := []string{"Tommny", "Johny", "Bobby", "Andy"}
+	go throwingNinjaStar(channel)
 
-	for _, evilNinja := range evilNinjas {
-		go Attack(evilNinja, call)
+	for message := range channel {
+		fmt.Println(message)
 	}
-
-	fmt.Println(<-call)
-
 }
 
-func Attack(target string, call chan bool) {
-	fmt.Println("Throwing ninja Sword at ", target)
-	time.Sleep(time.Second)
-	call <- true
+func throwingNinjaStar(channel chan string) {
+	rand.Seed(time.Now().UnixNano())
+	numRounds := 3
+	for i := 0; i < numRounds; i++ {
+		score := rand.Intn(10)
+		channel <- fmt.Sprint("you scored: ", score)
+	}
+	close(channel)
 }
