@@ -2,31 +2,46 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 )
 
 func main() {
 
-	channel := make(chan string)
+	ninja1, ninja2 := make(chan string), make(chan string)
 
-	go throwingNinjaStar(channel)
+	go captainElect(ninja1, "Ninja 1")
+	go captainElect(ninja2, "Ninja 2")
 
-	for {
-		message, open := <-channel
-		if !open {
-			break
-		}
+	select {
+	case message := <-ninja1:
 		fmt.Println(message)
+	case message := <-ninja2:
+		fmt.Println(message)
+	default:
+		fmt.Println("Neither")
 	}
+
+	roughlyFair()
 }
 
-func throwingNinjaStar(channel chan string) {
-	rand.Seed(time.Now().UnixNano())
-	numRounds := 3
-	for i := 0; i < numRounds; i++ {
-		score := rand.Intn(10)
-		channel <- fmt.Sprint("you scored: ", score)
+func captainElect(ninja chan string, message string) {
+	ninja <- message
+}
+
+func roughlyFair() {
+	ninja1 := make(chan any)
+	close(ninja1)
+	ninja2 := make(chan any)
+	close(ninja2)
+
+	var ninja1Count, ninja2Count int
+	for i := 0; i < 1000; i++ {
+		select {
+		case <-ninja1:
+			ninja1Count++
+		case <-ninja2:
+			ninja2Count++
+		}
 	}
-	close(channel)
+
+	fmt.Printf("ninja1Count: %d, ninja2Count: %d", ninja1Count, ninja2Count)
 }
