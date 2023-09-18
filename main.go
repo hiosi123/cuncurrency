@@ -1,27 +1,60 @@
 package main
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+var (
+	lock   sync.Mutex
+	rwLock sync.RWMutex
+	count  int
+)
 
 func main() {
-	// var beeper sync.WaitGroup
-	// var evilNinjas = []string{"Tommny", "John", "Bob"}
-	// beeper.Add(len(evilNinjas))
-
-	// for _, evilNinja := range evilNinjas {
-	// 	go attack(evilNinja, &beeper)
-	// }
-
-	// beeper.Wait()
-	// fmt.Println("Mission Completed")
-
-	var beeper sync.WaitGroup
-	beeper.Add(2)
-	beeper.Done()
-	beeper.Done()
-	beeper.Wait()
+	// basics()
+	readAndWrite()
 }
 
-// func attack(evilNinja string, beeper *sync.WaitGroup) {
-// 	fmt.Println("Attacked evil ninja: ", evilNinja)
-// 	beeper.Done()
-// }
+func basics() {
+	iterations := 1000
+	for i := 0; i < iterations; i++ {
+		go increament()
+	}
+	time.Sleep(1 * time.Second)
+	fmt.Println("resulted count is:", count)
+}
+
+func readAndWrite() {
+	go read()
+	go read()
+	go write()
+
+	time.Sleep(5 * time.Second)
+	fmt.Println("Done")
+}
+
+func read() {
+	rwLock.RLock()
+	defer rwLock.RUnlock()
+
+	fmt.Println("read locking")
+	time.Sleep(1 * time.Second)
+	fmt.Println("reading unlocking")
+}
+
+func write() {
+	rwLock.Lock()
+	defer rwLock.Unlock()
+
+	fmt.Println("write locking")
+	time.Sleep(1 * time.Second)
+	fmt.Println("write unlocking")
+}
+
+func increament() {
+	lock.Lock()
+	count++
+	lock.Unlock()
+}
