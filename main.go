@@ -1,47 +1,27 @@
 package main
 
-import (
-	"fmt"
-)
+import "sync"
 
 func main() {
+	// var beeper sync.WaitGroup
+	// var evilNinjas = []string{"Tommny", "John", "Bob"}
+	// beeper.Add(len(evilNinjas))
 
-	ninja1, ninja2 := make(chan string), make(chan string)
+	// for _, evilNinja := range evilNinjas {
+	// 	go attack(evilNinja, &beeper)
+	// }
 
-	go captainElect(ninja1, "Ninja 1")
-	go captainElect(ninja2, "Ninja 2")
+	// beeper.Wait()
+	// fmt.Println("Mission Completed")
 
-	select {
-	case message := <-ninja1:
-		fmt.Println(message)
-	case message := <-ninja2:
-		fmt.Println(message)
-	default:
-		fmt.Println("Neither")
-	}
-
-	roughlyFair()
+	var beeper sync.WaitGroup
+	beeper.Add(2)
+	beeper.Done()
+	beeper.Done()
+	beeper.Wait()
 }
 
-func captainElect(ninja chan string, message string) {
-	ninja <- message
-}
-
-func roughlyFair() {
-	ninja1 := make(chan any)
-	close(ninja1)
-	ninja2 := make(chan any)
-	close(ninja2)
-
-	var ninja1Count, ninja2Count int
-	for i := 0; i < 1000; i++ {
-		select {
-		case <-ninja1:
-			ninja1Count++
-		case <-ninja2:
-			ninja2Count++
-		}
-	}
-
-	fmt.Printf("ninja1Count: %d, ninja2Count: %d", ninja1Count, ninja2Count)
-}
+// func attack(evilNinja string, beeper *sync.WaitGroup) {
+// 	fmt.Println("Attacked evil ninja: ", evilNinja)
+// 	beeper.Done()
+// }
