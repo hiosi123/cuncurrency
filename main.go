@@ -2,59 +2,52 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 )
 
 var (
-	lock   sync.Mutex
-	rwLock sync.RWMutex
-	count  int
+	lock             sync.Mutex
+	rwLock           sync.RWMutex
+	count            int
+	missionCompleted bool
 )
 
 func main() {
-	// basics()
-	readAndWrite()
-}
+	var wg sync.WaitGroup
+	wg.Add(100)
 
-func basics() {
-	iterations := 1000
-	for i := 0; i < iterations; i++ {
-		go increament()
+	var once sync.Once
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			if foundTreasure() {
+				once.Do(markMissionCompleted)
+			}
+			wg.Done()
+		}()
 	}
-	time.Sleep(1 * time.Second)
-	fmt.Println("resulted count is:", count)
+
+	wg.Wait()
+
+	checkMissionCompletion()
 }
 
-func readAndWrite() {
-	go read()
-	go read()
-	go write()
-
-	time.Sleep(5 * time.Second)
-	fmt.Println("Done")
+func checkMissionCompletion() {
+	if missionCompleted {
+		fmt.Println("Mission is now completed")
+	} else {
+		fmt.Println("Mission was a failure")
+	}
 }
 
-func read() {
-	rwLock.RLock()
-	defer rwLock.RUnlock()
-
-	fmt.Println("read locking")
-	time.Sleep(1 * time.Second)
-	fmt.Println("reading unlocking")
+func markMissionCompleted() {
+	missionCompleted = true
+	fmt.Println("Marking mission completed")
 }
 
-func write() {
-	rwLock.Lock()
-	defer rwLock.Unlock()
-
-	fmt.Println("write locking")
-	time.Sleep(1 * time.Second)
-	fmt.Println("write unlocking")
-}
-
-func increament() {
-	lock.Lock()
-	count++
-	lock.Unlock()
+func foundTreasure() bool {
+	rand.Seed(time.Now().UnixNano())
+	return 0 == rand.Intn(10)
 }
