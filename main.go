@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"sync"
-	"time"
 )
 
 var (
@@ -15,39 +13,28 @@ var (
 )
 
 func main() {
+	var numMemPieces int
+	memPool := &sync.Pool{
+		New: func() interface{} {
+			numMemPieces++
+			mem := make([]byte, 1024)
+			return &mem
+		},
+	}
+
+	const numWorkers = 1024 * 1024
+
 	var wg sync.WaitGroup
-	wg.Add(100)
-
-	var once sync.Once
-
-	for i := 0; i < 100; i++ {
+	wg.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
 		go func() {
-			if foundTreasure() {
-				once.Do(markMissionCompleted)
-			}
+			mem := memPool.Get().(*[]byte)
+			fmt.Sprintln("Taking some time on the resource")
+			memPool.Put(mem)
 			wg.Done()
 		}()
 	}
-
 	wg.Wait()
 
-	checkMissionCompletion()
-}
-
-func checkMissionCompletion() {
-	if missionCompleted {
-		fmt.Println("Mission is now completed")
-	} else {
-		fmt.Println("Mission was a failure")
-	}
-}
-
-func markMissionCompleted() {
-	missionCompleted = true
-	fmt.Println("Marking mission completed")
-}
-
-func foundTreasure() bool {
-	rand.Seed(time.Now().UnixNano())
-	return 0 == rand.Intn(10)
+	fmt.Printf("%d numMemPieces were created", numMemPieces)
 }
